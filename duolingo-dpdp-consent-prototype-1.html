@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DPDP Consent Flow — Clickable Prototype</title>
+<style>
+  :root{
+    --navy:#12213F; --navy2:#1C3260; --teal:#0E7C7B; --teal-light:#E4F5F3;
+    --amber:#C9781F; --amber-light:#FBF1E4; --ink:#1F2937; --muted:#5B6B85;
+    --panel:#F3F5F9; --paper:#FFFFFF; --ice:#CBD8EE;
+    --radius:20px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:22px; background:linear-gradient(160deg,#0B1830,#1C3260 55%,#123433);
+    font-family:'Segoe UI',Calibri,Arial,sans-serif; padding:40px 16px;
+  }
+  .frame-wrap{ text-align:center; color:#CBD8EE; }
+  .frame-wrap h1{ font-family:Cambria,Georgia,serif; font-size:22px; color:#fff; margin:0 0 4px; }
+  .frame-wrap p{ font-size:13px; color:#9FB0CE; margin:0 0 18px; max-width:480px; }
+
+  .phone{
+    width:360px; height:740px; background:#000; border-radius:46px; padding:14px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45), 0 0 0 2px #222;
+    position:relative;
+  }
+  .screen{
+    width:100%; height:100%; background:var(--paper); border-radius:32px; overflow:hidden;
+    position:relative; display:flex; flex-direction:column;
+  }
+  .notch{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:120px; height:22px; background:#000; border-radius:14px; z-index:5;
+  }
+  .status{ height:40px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 22px; font-size:12px; color:#111; font-weight:600;}
+
+  .view{ flex:1; display:none; flex-direction:column; overflow-y:auto; -ms-overflow-style:none; scrollbar-width:none;}
+  .view::-webkit-scrollbar{ display:none; }
+  .view.active{ display:flex; }
+
+  .pad{ padding:20px 22px 26px; }
+  .eyebrow{ font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--teal); text-transform:uppercase; margin:0 0 6px;}
+  h2{ font-family:Cambria,Georgia,serif; font-size:23px; color:var(--navy); margin:0 0 10px; line-height:1.25;}
+  .sub{ font-size:13.5px; color:var(--muted); line-height:1.5; margin:0 0 18px;}
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:11.5px; font-weight:700; color:var(--navy); margin-bottom:6px; letter-spacing:0.3px;}
+  .field input{
+    width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid #E1E6EF; font-size:14px;
+    background:var(--panel); color:var(--ink); outline:none;
+  }
+  .field input:focus{ border-color:var(--teal); background:#fff;}
+  .hint{ font-size:11px; color:var(--muted); margin-top:6px; }
+
+  .btn{
+    display:block; width:100%; text-align:center; padding:14px; border-radius:14px; border:none;
+    font-size:14.5px; font-weight:700; cursor:pointer; letter-spacing:0.2px;
+  }
+  .btn-primary{ background:var(--teal); color:#fff; }
+  .btn-primary:active{ transform:scale(0.98); }
+  .btn-ghost{ background:transparent; color:var(--muted); font-weight:600; padding:10px; font-size:13px; }
+  .btn-outline{ background:#fff; color:var(--navy); border:1.5px solid #E1E6EF; }
+
+  .otp-row{ display:flex; gap:8px; margin:6px 0 4px; }
+  .otp-row input{
+    width:44px; height:52px; text-align:center; font-size:20px; font-weight:700;
+    border-radius:10px; border:1.5px solid #E1E6EF; background:var(--panel); color:var(--navy);
+  }
+  .otp-row input:focus{ border-color:var(--teal); background:#fff; outline:none;}
+
+  .icon-circle{
+    width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:24px; margin-bottom:14px; color:#fff;
+  }
+  .bg-navy{ background:var(--navy); } .bg-teal{ background:var(--teal); } .bg-amber{ background:var(--amber); }
+
+  .card{ background:var(--panel); border-radius:14px; padding:14px 16px; margin-bottom:12px; }
+  .card-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .card-title{ font-size:13.5px; font-weight:700; color:var(--navy); margin:0 0 3px; }
+  .card-body{ font-size:11.5px; color:var(--muted); line-height:1.4; margin:0; }
+
+  .toggle{ position:relative; width:44px; height:26px; flex:none; }
+  .toggle input{ opacity:0; width:100%; height:100%; margin:0; position:absolute; z-index:2; cursor:pointer;}
+  .toggle .track{ position:absolute; inset:0; background:#D5DBE6; border-radius:20px; transition:.2s;}
+  .toggle .thumb{ position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .toggle input:checked + .track{ background:var(--teal); }
+  .toggle input:checked ~ .thumb{ transform:translateX(18px); }
+  .toggle.locked .track{ background:var(--teal); opacity:0.5; }
+  .toggle.locked input{ cursor:not-allowed; }
+
+  .center-flex{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px;}
+  .big-icon{ width:78px; height:78px; border-radius:50%; background:var(--teal-light); color:var(--teal); font-size:38px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;}
+
+  .topbar{ display:flex; align-items:center; gap:10px; padding:16px 22px 6px; }
+  .back{ width:32px; height:32px; border-radius:50%; background:var(--panel); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--navy); flex:none;}
+  .topbar .ttl{ font-size:13px; font-weight:700; color:var(--navy); }
+
+  .streak-header{ background:var(--navy); padding:26px 22px 20px; color:#fff; }
+  .streak-header .lbl{ font-size:11px; letter-spacing:1.5px; color:var(--ice); font-weight:700; text-transform:uppercase;}
+  .streak-header .num{ font-family:Cambria,Georgia,serif; font-size:30px; font-weight:700; margin:2px 0;}
+  .avatar{ width:38px; height:38px; border-radius:50%; background:var(--teal); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px; }
+
+  .row-link{ display:flex; align-items:center; justify-content:space-between; padding:15px 4px; border-bottom:1px solid #EEF1F6; cursor:pointer;}
+  .row-link:last-child{ border-bottom:none; }
+  .row-link .rl-icon{ width:34px; height:34px; border-radius:9px; background:var(--panel); display:flex; align-items:center; justify-content:center; margin-right:12px; font-size:15px; color:var(--navy);}
+  .row-link .rl-text{ flex:1; }
+  .row-link .rl-title{ font-size:13.5px; font-weight:700; color:var(--navy); }
+  .row-link .rl-sub{ font-size:11px; color:var(--muted); }
+  .chev{ color:#B7C0D1; font-size:15px; }
+
+  .badge{ display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .badge-on{ background:var(--teal-light); color:var(--teal); }
+  .badge-off{ background:#EEF1F6; color:var(--muted); }
+
+  .dots{ display:flex; gap:6px; justify-content:center; padding:10px 0 4px;}
+  .dots span{ width:6px; height:6px; border-radius:50%; background:#E1E6EF; }
+  .dots span.on{ background:var(--teal); width:16px; border-radius:4px; }
+
+  .nav-hint{ margin-top:14px; font-size:11.5px; color:#7C8AA5; }
+  footer{ font-size:11px; color:#8494B4; max-width:560px; text-align:center; line-height:1.6; }
+  footer b{ color:#CBD8EE; }
+</style>
+</head>
+<body>
+
+<div class="frame-wrap">
+  <h1>DPDP-Aligned Consent — Happy Path Prototype</h1>
+  <p>By Abhishek Prasad · A minor signs up, a parent verifies and grants consent, and the learner gets an in-app Data &amp; Privacy hub. Tap through the buttons below.</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status"><span>9:41</span><span>●●●●  📶  🔋</span></div>
+
+    <!-- 1. Signup -->
+    <div class="view active" id="v-signup">
+      <div class="pad" style="padding-top:10px;">
+        <div class="icon-circle bg-teal">🌐</div>
+        <div class="eyebrow">Create account</div>
+        <h2>Let's set up your learning profile</h2>
+        <p class="sub">A few details to personalize your course — and to make sure we handle your data the right way.</p>
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" value="Aisha Deshmukh" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="text" value="aisha.d@gmail.com" />
+        </div>
+        <div class="field">
+          <label>Date of birth</label>
+          <input type="text" id="dob" value="14 / 03 / 2011" />
+          <div class="hint">Required. We ask everyone — it's how we know when a parent needs to be involved.</div>
+        </div>
+        <button class="btn btn-primary" onclick="go('v-agegate')">Continue</button>
+      </div>
+    </div>
+
+    <!-- 2. Age gate result -->
+    <div class="view" id="v-agegate">
+      <div class="center-flex">
+        <div class="big-icon">🛡️</div>
+        <div class="eyebrow">Almost there</div>
+        <h2>You're 15 — a parent needs to say it's okay</h2>
+        <p class="sub">Indian law requires verifiable consent from a parent or guardian before we can collect data for a learner under 18. It only takes them about two minutes.</p>
+        <button class="btn btn-primary" onclick="go('v-parentcontact')">Get parent's consent</button>
+        <button class="btn btn-ghost" onclick="go('v-signup')">Go back</button>
+      </div>
+    </div>
+
+    <!-- 3. Parent contact -->
+    <div class="view" id="v-parentcontact">
+      <div class="topbar"><div class="back" onclick="go('v-agegate')">←</div><div class="ttl">Parent verification</div></div>
+      <div class="pad">
+        <div class="icon-circle bg-navy">👪</div>
+        <div class="eyebrow">Step 1 of 2</div>
+        <h2>Who's your parent or guardian?</h2>
+        <p class="sub">We'll send a one-time code to verify it's really them — not for marketing, just for consent.</p>
+        <div class="field">
+          <label>Parent's mobile number</label>
+          <input type="text" value="+91 98•••••• 42" />
+        </div>
+        <div class="field">
+          <label>Parent's email (optional backup)</label>
+          <input type="text" value="reshma.deshmukh@gmail.com" />
+        </div>
+        <button class="btn btn-primary" onclick="go('v-otp')">Send verification code</button>
+      </div>
+    </div>
+
+    <!-- 4. OTP -->
+    <div class="view" id="v-otp">
+      <div class="topbar"><div class="back" onclick="go('v-parentcontact')">←</div><div class="ttl">Enter code</div></div>
+      <div class="pad">
+        <div class="icon-circle bg-teal">🔑</div>
+        <div class="eyebrow">Step 2 of 2 — sent to parent</div>
+        <h2>Enter the 4-digit code</h2>
+        <p class="sub">We texted a code to +91 98•••••• 42. Have your parent read it out or enter it themselves.</p>
+        <div class="otp-row">
+          <input maxlength="1" value="7"/><input maxlength="1" value="4"/><input maxlength="1" value="2"/><input maxlength="1" value="9"/>
+        </div>
+        <div class="hint" style="margin-bottom:18px;">Didn't get it? <b style="color:var(--teal)">Resend in 0:24</b></div>
+        <button class="btn btn-primary" onclick="go('v-consent')">Verify</button>
+      </div>
+    </div>
+
+    <!-- 5. Parent consent screen -->
+    <div class="view" id="v-consent">
+      <div class="topbar"><div class="ttl" style="font-size:11px; color:var(--muted); letter-spacing:1px; text-transform:uppercase;">Viewing as Reshma (parent)</div></div>
+      <div class="pad" style="padding-top:6px;">
+        <div class="icon-circle bg-navy">📋</div>
+        <h2>Review &amp; consent for Aisha's account</h2>
+        <p class="sub">Here's exactly what we'd collect and why. Turn things on or off — you can change these anytime.</p>
+
+        <div class="card">
+          <div class="card-row">
+            <div><p class="card-title">Learning progress data</p><p class="card-body">Lessons, streaks, accuracy — used to personalize her course. Required for the app to work.</p></div>
+            <span class="badge badge-on">Required</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-row">
+            <div><p class="card-title">Personalized ads</p><p class="card-body">Using her activity to choose which ads she sees.</p></div>
+            <label class="toggle"><input type="checkbox" id="tgl-ads"><span class="track"></span><span class="thumb"></span></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-row">
+            <div><p class="card-title">Share data with third parties</p><p class="card-body">Sharing usage data with analytics or ad partners.</p></div>
+            <label class="toggle"><input type="checkbox" id="tgl-share"><span class="track"></span><span class="thumb"></span></label>
+          </div>
+        </div>
+
+        <div class="hint" style="margin:2px 0 18px;">Ads and sharing are off by default for learners under 18. You can revisit this anytime from the parent dashboard.</div>
+        <button class="btn btn-primary" onclick="go('v-success')">Approve &amp; continue</button>
+      </div>
+    </div>
+
+    <!-- 6. Success -->
+    <div class="view" id="v-success">
+      <div class="center-flex">
+        <div class="big-icon">✅</div>
+        <div class="eyebrow">All set</div>
+        <h2>Aisha's account is ready</h2>
+        <p class="sub">Consent is on file and current. Aisha can start learning — and you can review or change this anytime from your email.</p>
+        <button class="btn btn-primary" onclick="go('v-home')">Go to Aisha's home screen</button>
+      </div>
+    </div>
+
+    <!-- 7. Home -->
+    <div class="view" id="v-home">
+      <div class="streak-header">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="lbl">Current streak</div>
+            <div class="num">🔥 6 days</div>
+          </div>
+          <div class="avatar">A</div>
+        </div>
+      </div>
+      <div class="pad">
+        <div class="row-link" onclick="go('v-privacy')">
+          <div class="rl-icon">🔒</div>
+          <div class="rl-text"><div class="rl-title">Data &amp; Privacy hub</div><div class="rl-sub">Consent status, your data, and your rights</div></div>
+          <div class="chev">›</div>
+        </div>
+        <div class="row-link">
+          <div class="rl-icon">📚</div>
+          <div class="rl-text"><div class="rl-title">Continue: French, Unit 4</div><div class="rl-sub">12 lessons left</div></div>
+          <div class="chev">›</div>
+        </div>
+        <div class="row-link">
+          <div class="rl-icon">🏆</div>
+          <div class="rl-text"><div class="rl-title">Leaderboard</div><div class="rl-sub">You're #3 this week</div></div>
+          <div class="chev">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Privacy hub -->
+    <div class="view" id="v-privacy">
+      <div class="topbar"><div class="back" onclick="go('v-home')">←</div><div class="ttl">Data &amp; Privacy</div></div>
+      <div class="pad">
+        <div class="card" style="background:var(--teal-light);">
+          <p class="card-title" style="color:var(--teal);">Parental consent: active</p>
+          <p class="card-body" style="color:#0E7C7B;">Verified by Reshma Deshmukh · Renews in 11 months</p>
+        </div>
+
+        <div class="row-link"><div class="rl-icon">📄</div><div class="rl-text"><div class="rl-title">See what data we collect</div><div class="rl-sub">By category, in plain language</div></div><div class="chev">›</div></div>
+        <div class="row-link"><div class="rl-icon">⬇️</div><div class="rl-text"><div class="rl-title">Download my data</div><div class="rl-sub">Get a copy within 72 hours</div></div><div class="chev">›</div></div>
+        <div class="row-link"><div class="rl-icon">✏️</div><div class="rl-text"><div class="rl-title">Correct my data</div><div class="rl-sub">Fix anything that's wrong</div></div><div class="chev">›</div></div>
+        <div class="row-link"><div class="rl-icon">👪</div><div class="rl-text"><div class="rl-title">Manage parental consent</div><div class="rl-sub">Ads: <span class="badge badge-off">Off</span> &nbsp; Sharing: <span class="badge badge-off">Off</span></div></div><div class="chev">›</div></div>
+        <div class="row-link"><div class="rl-icon">🗑️</div><div class="rl-text"><div class="rl-title">Delete my account</div><div class="rl-sub">Erase all data permanently</div></div><div class="chev">›</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="dots" id="dots"></div>
+<footer>
+  Screens: <b>Signup → Age gate → Parent contact → OTP verify → Parent consent → Success → Home → Data &amp; Privacy hub.</b><br/>
+  Happy path only, per the assignment brief — mock data throughout, built to accompany the Product Thinking Deck.
+</footer>
+
+<script>
+  const order = ['v-signup','v-agegate','v-parentcontact','v-otp','v-consent','v-success','v-home','v-privacy'];
+  const dotsEl = document.getElementById('dots');
+  order.forEach((id,i)=>{ const d=document.createElement('span'); d.id='dot-'+i; dotsEl.appendChild(d); });
+
+  function go(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id).scrollTop = 0;
+    const idx = order.indexOf(id);
+    order.forEach((oid,i)=>{ document.getElementById('dot-'+i).classList.toggle('on', i===idx); });
+  }
+  go('v-signup');
+</script>
+
+</body>
+</html>
